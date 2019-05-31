@@ -1,0 +1,27 @@
+---
+version: "3.7"
+services:
+  minecraft:
+    image: itzg/minecraft-server
+    ports:
+      - 25565:25565
+    networks:
+      - homelab_homelab
+    environment:
+      - EULA=TRUE
+      - VERSION=1.13.2
+      - MODE=survival
+      - MOTD="Welcome to our Minecraft server"
+      - PVP=false
+      - OPS=csharpfritz
+      - "JVM_OPTS=-Xmx3072M -Xms1024M"
+    configs:
+      - server_properties
+    volumes:
+      - ./logs:/data/logs
+configs:
+  server_properties:
+    file: ./server.properties
+networks:
+  homelab_homelab:
+    external: true
