@@ -1,3 +1,23 @@
-{
-  
-}
+[
+  {
+    "uuid": "e75f271f-0e50-4e78-b50a-6b417e8c9cdc",
+    "name": "Floridatrail"
+  },
+  {
+    "uuid": "8c7b1fce-fab7-4728-97a0-40f4cad5f8ea",
+    "name": "kilamanila"
+  },
+  {
+    "uuid": "d5be2dce-773e-47ae-b535-d89776cc1bb5",
+    "name": "shwarkim"
+  },
+  {
+    "uuid": "3cf79e05-c913-4607-813e-d955e2bd235d",
+    "name": "geogpig"
+  },
+  {
+    "uuid": "72269357-2e23-4aea-b198-6e52f2324e99",
+    "name": "meepster"
+  }
+
+]
