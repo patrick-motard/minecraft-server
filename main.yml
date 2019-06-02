@@ -1,0 +1,52 @@
+---
+- hosts: droplets
+  tasks:
+  - name: Minecraft directories
+    file:
+      path: "/home/{{ansible_user}}/{{item}}"
+      state: directory
+    with_items:
+      - minecraft
+      - minecraft/data
+  - name: Minecraft config files
+    copy:
+      src: "{{item}}"
+      dest: "/home/{{ansible_user}}/minecraft/"
+    with_items:
+      - minecraft.yml
+      - server.properties
+      - whitelist.json
+
+  - name: Docker
+    become: true
+    block:
+    - name: Install prerequisites
+      apt: 
+        name: ['apt-transport-https','ca-certificates', 'curl', 'software-properties-common'] 
+        force_apt_get: yes # apt isn't installed in the vm, forcing it to use apt-get
+        # gets rid of the warning that says 'apt not found, using apt-get'
+        update_cache: yes
+    - name: Add Docker GPG key
+      apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+    - name: Install Docker
+      apt: 
+        name: docker-ce
+        force_apt_get: yes
+    - name: Create docker usergroup
+      group:
+        name: docker
+        state: present
+    - name: Add user to docker group
+      # so that we don't have to type sudo every time we use docker
+      user:
+        name: "{{ansible_user}}"
+        groups: docker
+        append: yes
+    - name: Start/Enable docker service
+      systemd:
+        name: docker
+        state: started 
+        enabled: yes
