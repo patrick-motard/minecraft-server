@@ -1,23 +1,8 @@
 ---
-- hosts: droplets
+- hosts: conky #droplets, conky
   tasks:
-  - name: Minecraft directories
-    file:
-      path: "/home/{{ansible_user}}/{{item}}"
-      state: directory
-    with_items:
-      - minecraft
-      - minecraft/data
-  - name: Minecraft config files
-    copy:
-      src: "{{item}}"
-      dest: "/home/{{ansible_user}}/minecraft/"
-    with_items:
-      - minecraft.yml
-      - server.properties
-      - whitelist.json
-
-  - name: Docker
+  - name: Docker - Ubuntu
+    when: ansible_distribution == "Ubuntu"
     become: true
     block:
     - name: Install prerequisites
@@ -50,3 +35,71 @@
         name: docker
         state: started 
         enabled: yes
+
+  - name: Docker - Debian
+    when: ansible_distribution == "Debian"
+    block:
+      - name: Update the apt package index
+        become: yes
+        apt:
+          name: "*"
+          state: latest
+          update_cache: yes
+          force_apt_get: yes
+      - name: Install packages for apt add repository over HTTPS
+        become: yes
+        apt:
+          name: "{{ packagesdep }}"
+          force_apt_get: yes
+          state: latest
+          update_cache: yes
+        vars:
+          packagesdep:
+          - git
+          - apt-transport-https
+          - ca-certificates
+          - wget
+          - software-properties-common
+          - gnupg2
+          - curl
+      - name: Add Apt signing key from official docker repo
+        apt_key:
+          url: https://download.docker.com/linux/debian/gpg
+          state: present
+      - name: add docker official repository for Debian Stretch
+        apt_repository:
+          repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+          state: present
+      - name: Index new repo into the cache
+        become: yes
+        apt:
+          name: "*"
+          state: latest
+          update_cache: yes
+          force_apt_get: yes
+      - name: actually install docker
+        apt:
+          name: "docker-ce"
+          state: latest
+  - name: Check if 'homenet' overlay exists
+    ignore_errors: true
+    shell: docker network inspect homenet
+    register: homenet_out
+  - name: Create Overlay
+    when: homenet_out.rc != 0
+    shell: docker network create homenet --attachable --driver overlay
+  - name: Minecraft directories
+    file:
+      path: "{{ansible_user_dir}}/{{item}}"
+      state: directory
+    with_items:
+      - minecraft
+      - minecraft/data
+  - name: Minecraft config files
+    copy:
+      src: "{{item}}"
+      dest: "{{ansible_user_dir}}/minecraft/"
+    with_items:
+      - minecraft.yml
+      - server.properties
+      - whitelist.json

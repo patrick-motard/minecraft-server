@@ -5,29 +5,57 @@ services:
     image: itzg/minecraft-server
     ports:
       - 25565:25565
-      # - 25575:25575
-    # networks:
-    #   - homelab_homelab
     environment:
       - EULA=TRUE
       - VERSION=1.14.2
       - MODE=survival
-      - MOTD="Welcome to our Minecraft server"
+      - MOTD="Welcome to the land of Clan CAK3"
       # - TYPE=FORGE
       # - SPONGEVERSION=1.12.2-7.1.5
       # - PVP=false
       - OPS=kilamanila
       # seems to be defaulting to 1 gig regardless of this setting
-      - "JVM_OPTS=-Xmx1512M -Xms1256M"
-    # configs:
-    #   - server_properties
+      - INIT_MEMORY=2G
+      - MAX_MEMORY=4G
     volumes:
       - ./data:/data
       - ./whitelist.json:/data/whitelist.json
       - ./server.properties:/data/server.properties
-# configs:
-  # server_properties:
-    # file: ./server.properties
-# networks:
-#   homelab_homelab:
-#     external: true
+    networks:
+      - homenet
+    deploy:
+      replicas: 1
+      mode: replicated
+      labels:
+        - traefik.port=25565
+        - traefik.enable=true
+        # - traefik.frontend.rule=Path:/
+        - traefik.docker.network=homenet
+  # proxy:
+  #   image: traefik:1.7-alpine
+  #   command:
+  #   - "--entryPoints=Name:http Address::80 Compress:true"
+  #   - "--defaultentrypoints=http"
+  #   - --docker
+  #   - --docker.endpoint=unix:///var/run/docker.sock
+  #   - --docker.network=homenet
+  #   - --docker.swarmMode
+  #   - --docker.watch
+  #   - --logLevel=DEBUG
+  #   - --api
+  #   ports:
+  #     - 80:80
+  #     - 8080:8080
+  #   networks:
+  #     - homenet
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   deploy:
+  #     labels:
+  #       traefik.enable: "false"
+  #     placement:
+  #       constraints:
+  #         - node.role == manager
+networks:
+  homenet:
+    external: true
