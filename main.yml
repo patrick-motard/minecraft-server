@@ -103,3 +103,24 @@
       - minecraft.yml
       - server.properties
       - whitelist.json
+  - name: install pip
+    apt:
+      name: "{{packages}}"
+      state: present
+    vars:
+      packages:
+        - python-pip
+        - python-setuptools
+  - name: install required pip packages
+    pip:
+      name: [
+        # required for docker_stack module
+        jsondiff,
+        # required for docker_stack module
+        pyyaml
+      ]
+      extra_args: --user
+  - name: Deploy minecraft.
+    docker_stack:
+      name: minecraft
+      compose: "{{ansible_user_dir}}/minecraft/minecraft.yml"
